@@ -3,73 +3,184 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Sample FirebaseUI App</title>
+    <title>RecipeDuniya.com</title>
 
-    <!-- update the version number as needed -->
+    <!-- Material Design Imports -->
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+
+    <!-- Firebase Imports -->
     <script defer src="/__/firebase/7.24.0/firebase-app.js"></script>
-    <!-- include only the Firebase features as you need -->
+    
     <script defer src="/__/firebase/7.24.0/firebase-auth.js"></script>
-    <script defer src="/__/firebase/7.24.0/firebase-database.js"></script>
-    <script defer src="/__/firebase/7.24.0/firebase-messaging.js"></script>
-    <script defer src="/__/firebase/7.24.0/firebase-storage.js"></script>
-    <script defer src="/__/firebase/7.24.0/firebase-analytics.js"></script>
-    <script defer src="/__/firebase/7.24.0/firebase-remote-config.js"></script>
-    <script defer src="/__/firebase/7.24.0/firebase-performance.js"></script>
-    <!-- initialize the SDK after all desired features are loaded -->
+
+    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-firestore.js"></script>
+    
     <script defer src="/__/firebase/init.js"></script>
 
-    <!-- *******************************************************************************************
-       * TODO(DEVELOPER): Paste the initialization snippet from:
-       * Firebase Console > Overview > Add Firebase to your web app. *
-       ***************************************************************************************** -->
+
+    <!-- Custom Script Start -->
     <script type="text/javascript">
         initApp = function () {
             firebase.auth().onAuthStateChanged(function (user) {
                 if (user) {
-                    // User is signed in.
                     var displayName = user.displayName;
-                    var email = user.email;
-                    var emailVerified = user.emailVerified;
-                    var photoURL = user.photoURL;
-                    var uid = user.uid;
-                    var phoneNumber = user.phoneNumber;
-                    var providerData = user.providerData;
-                    user.getIdToken().then(function (accessToken) {
-                        document.getElementById('sign-in-status').textContent = 'Signed in';
-                        document.getElementById('sign-in').textContent = 'Sign out';
-                        document.getElementById('account-details').textContent = JSON.stringify({
-                            displayName: displayName,
-                            email: email,
-                            emailVerified: emailVerified,
-                            phoneNumber: phoneNumber,
-                            photoURL: photoURL,
-                            uid: uid,
-                            accessToken: accessToken,
-                            providerData: providerData
-                        }, null, '  ');
-                    });
+                    
+                    sign_out_button.textContent += ` (${user.displayName})`
+
+                    var db = firebase.firestore();
+
+                    console.log(db)
+                    
                 } else {
-                    // User is signed out.
-                    document.getElementById('sign-in-status').textContent = 'Signed out';
-                    document.getElementById('sign-in').textContent = 'Sign in';
-                    document.getElementById('account-details').textContent = 'null';
+                    window.location = "/";
                 }
             }, function (error) {
-                console.log(error);
+                console.warn(error);
             });
         };
 
         window.addEventListener('load', function () {
             initApp()
         });
+
+        function signOut(){
+            firebase.auth().signOut().then(function() {
+                window.location = "/";
+            }, function(error) {
+                console.warn(error)
+            });
+        }
     </script>
+
+    <style>
+        body, html{
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        #header{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #sign_button{
+            padding: 10px;
+            font-weight: bold;
+            border: 0px;
+            color: white;
+            background-color: red;
+        }
+
+        #chip_template{
+            display: none
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Welcome to My Awesome App</h1>
-    <div id="sign-in-status"></div>
-    <div id="sign-in"></div>
-    <pre id="account-details"></pre>
+    <div id="header">
+        <h1>Welcome to RecipeDuniya.com</h1>
+        
+        <button class="mdc-button foo-button">
+            <div class="mdc-button__ripple"></div>
+            <span id="sign_out_button" class="mdc-button__label">Sign Out</span>
+        </button>
+
+    </div>
+    <div>
+        Ingredients Available:
+        <br>
+        <br>
+        <label class="mdc-text-field mdc-text-field--outlined">
+            <input id="ingredient_ip" type="text" class="mdc-text-field__input" aria-labelledby="my-label-id">
+            <span class="mdc-notched-outline">
+                <span class="mdc-notched-outline__leading"></span>
+                <span class="mdc-notched-outline__trailing"></span>
+            </span>
+        </label>
+
+        <button class="mdc-button mdc-button--outlined" onclick="addChipCaller()">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">Add Ingredient</span>
+        </button>
+
+        <div class="mdc-chip-set mdc-chip-set--input" role="grid">
+            
+        </div>
+
+    </div>
+
+
+    <!-- TEMPLATE NODE -->
+    <div id="chip_template" class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <span role="gridcell">
+            <span role="button" tabindex="0" class="mdc-chip__primary-action">
+                <span class="chip_title" class="mdc-chip__text">Jane Smith</span>
+            </span>
+        </span>
+        <span role="gridcell">
+            <i class="material-icons mdc-chip__icon mdc-chip__icon--trailing" tabindex="-1" role="button" onclick="removeChip(this)">cancel</i>
+        </span>
+    </div>
+
+
+    <script>
+        mdc.ripple.MDCRipple.attachTo(document.querySelector('.foo-button'));
+
+        var MDCTextField = mdc.textField.MDCTextField
+        const textField = new MDCTextField(document.querySelector('.mdc-text-field'));
+
+        const MDCChipSet = mdc.chips.MDCChipSet;
+        const MDCChip    = mdc.chips.MDCChip;
+        const chipSetEl  = document.querySelector('.mdc-chip-set');
+        const chipSet    = new MDCChipSet(chipSetEl);
+
+
+
+        var chips = []
+        var ingredients_available = []
+
+
+        function removeChip(root){
+            var target = chips.filter( (chip)=>chip.root == root.parentElement.parentElement )[0]
+
+            ingredients_available.splice( chips.indexOf(target), 1 )
+            target.beginExit()
+
+            console.log(ingredients_available)
+        }
+
+        function addChip(title){
+            var clone = chip_template.cloneNode(true)
+            clone.id = ""
+            clone.getElementsByClassName('chip_title')[0].innerText = title
+
+            chipSetEl.appendChild(clone)
+            chipSet.addChip(clone)
+
+            chips.push(new MDCChip(clone))
+            ingredients_available.push(title)
+
+            console.log(ingredients_available)
+        }
+
+        function addChipCaller(){
+            var title = ingredient_ip.value
+
+            addChip(title)
+
+            ingredient_ip.value = ""
+        }
+
+    </script>
 </body>
 
 </html>
