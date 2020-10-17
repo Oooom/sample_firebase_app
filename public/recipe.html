@@ -12,11 +12,10 @@
 
     <!-- Firebase Imports -->
     <script defer src="/__/firebase/7.24.0/firebase-app.js"></script>
-    
     <script defer src="/__/firebase/7.24.0/firebase-auth.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-firestore.js"></script>
+
+    <script defer src="/__/firebase/7.24.0/firebase-firestore.js"></script>
     
     <script defer src="/__/firebase/init.js"></script>
 
@@ -29,11 +28,18 @@
                     var displayName = user.displayName;
                     
                     sign_out_button.textContent += ` (${user.displayName})`
-
-                    var db = firebase.firestore();
-
-                    console.log(db)
                     
+                    var db = firebase.firestore()
+
+                    db.collection("users").get().then((querySnapshot) => {
+                        //prints all documents
+                        querySnapshot.forEach((doc) => {
+
+                            //.data() returns the document as json
+                            console.log(doc.data());
+                        });
+                    });
+
                 } else {
                     window.location = "/";
                 }
@@ -88,7 +94,7 @@
     <div id="header">
         <h1>Welcome to RecipeDuniya.com</h1>
         
-        <button class="mdc-button foo-button">
+        <button class="mdc-button foo-button" onclick="signOut()">
             <div class="mdc-button__ripple"></div>
             <span id="sign_out_button" class="mdc-button__label">Sign Out</span>
         </button>
