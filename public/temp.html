@@ -30,7 +30,6 @@
     
     <!-- Custom Script Start -->
     <script type="text/javascript">
-        var recipesFetched = []
         initApp = function () {
             firebase.auth().onAuthStateChanged(function (user) {
                 if (user) {
@@ -45,7 +44,6 @@
                         querySnapshot.forEach((doc) => {
                             
                             //.data() returns the document as json
-                            var time = parseInt(doc.data().cooktime) + parseInt(doc.data().preptime) +" mins"
                             console.log(doc.data());
                             var div = document.createElement("div");
                             div.setAttribute("class", "col-md-4")
@@ -55,11 +53,11 @@
                             div_card_body.setAttribute("class", "card-body")
                             var h = document.createElement("h5");
                             h.setAttribute("class", "card-title")
-                            h.textContent = doc.data().title+"  ("+time+")";
+                            h.textContent = doc.data().title;
                             var a = document.createElement("button");
                             a.setAttribute("class", "btn btn-primary");
-                            a.setAttribute("onclick", 'viewRecipe(\''+doc.data().title+'\')');
-                            a.setAttribute("data-target","#tempModal")
+                            // a.setAttribute("onclick", 'viewRecipe(\''+doc.data().title+'\')');
+                            a.setAttribute("data-target","#exampleModal")
                             a.setAttribute("data-toggle","modal")
                             a.textContent = "View recipe"
                             div_card_body.appendChild(h)
@@ -91,39 +89,7 @@
         }
         
         function viewRecipe(title){
-            if(recipesFetched.indexOf(title)!=-1) return;
             console.log(title)
-            document.getElementById("exampleModalLongTitle").textContent = title;
-            db = firebase.firestore()
-            db.collection("recipes").where("title", "==", title).get().then(function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                    // doc.data() is never undefined for query doc snapshots
-                    recipe = doc.data()
-                    document.getElementById("calories").textContent = recipe.calories;
-                    document.getElementById("prep").textContent = recipe.preptime;
-                    document.getElementById("cook").textContent = recipe.cooktime;
-
-                    var ingredients = document.getElementById("ingredients")
-                    for(ingredient of recipe.ingredients){
-                        var li = document.createElement("li");
-                        li.textContent = ingredient.ingredient+" "+ingredient.quantity+""+ingredient.unit;
-                        ingredients.appendChild(li)
-                    }
-
-                    var steps = document.getElementById("steps")
-                    for(step of recipe.procedure){
-                        var li = document.createElement("li");
-                        li.textContent = step
-                        steps.appendChild(li)
-                    }
-
-                    recipesFetched.push(title);
-                    console.log(doc.id, " => ", doc.data());
-                });
-            })
-            .catch(function(error) {
-                console.log("Error getting documents: ", error);
-            });
             
         }
     </script>
@@ -143,6 +109,10 @@
             color: white;
             background-color: red;
         }
+        /*                                     
+        .modal-backdrop.show {
+            opacity: 0.7 !important;
+        } */
     </style>
 </head>
 
@@ -172,28 +142,47 @@
         </div>
         <br>
         <br>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#tempModal" onclick="temp('hello')">
+            Launch demo modal
+        </button>
         
-        <div class="modal fade" id="tempModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal fade bd-example-modal-lg" id="tempModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle"></h5>
+                        <h5 class="modal-title" id="exampleModalLongTitle">Add new recipe</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        Calories: <div style="display:inline" id="calories">90</div><br>
-                        Prep time: <div style="display:inline" id="prep">10 mins</div><br>
-                        Cook time: <div style="display:inline" id="cook">20 mins</div><br><br>
-                        Ingredients:
+                        Recipe Title: <input type="text" id="title_input"><br>
+                        Calories: <input type="number" id="calorie_input"><br>
+                        Prep time (in mins): <input type="number" id="prep_input"><br>
+                        Cook time (in mins): <input type="number" id="cook_input"><br><br>
+                        <hr>
+                        <b>Ingredients:</b>
                         <div>
                             <ul id="ingredients"></ul>
+                            
+                            <div id="newIngredient">
+                                Item name: <input type="text" id="item"><br>
+                                Quantity: <input type="number" id="quantity"> 
+                                Unit: <input type="text" id="unit"><br>
+                            </div><br>
+                            <button class="btn btn-info" onclick="addNewIngredient()">Add ingredients</button>
                         </div>
+                        <hr>
                         <br>
-                        Procedure:
+                        <b>Procedure:</b>
                         <div>
                             <ul id="steps"></ul>
+                            
+                            <div id="newStep" class="col-md-12">
+                                Procedure: <textarea id="procedure" style="width:50%"></textarea><br>
+                            </div><br>
+                            <button class="btn btn-info" onclick="addNewStep()">Add step</button>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -201,7 +190,7 @@
                     </div>
                 </div>
             </div>
-        </div>    
+        </div>       
     </div>
     
     
@@ -209,6 +198,9 @@
     <script>
         mdc.ripple.MDCRipple.attachTo(document.querySelector('.foo-button'));
         
+        function temp(t){
+            console.log(t)
+        }
     </script>
 </body>
 
